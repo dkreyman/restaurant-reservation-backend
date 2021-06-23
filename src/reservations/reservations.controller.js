@@ -20,29 +20,45 @@ async function list(req, res, next) {
 }
 async function read(req, res, next) {
   try {
-    const { date } = req.query.date;
+    const date = req.query.date;
     const reservation = await service.read(date);
     if (reservation) {
       res.json({ data: reservation });
     } else {
       next({
         status: 404,
-        message: `Reservations cannot be found for this date: ${time}.`,
+        message: `Reservations cannot be found for this date: ${date}.`,
       });
     }
   } catch (err) {
     console.log(err);
     next({
       status: 500,
-      message: `Something went wrong looking for reservations for this date: ${time}`,
+      message: `Something went wrong looking for reservations for this date: ${date}`,
     });
   }
 }
 
-async function create(req, res) {
-  const result = await service.create(req.body.data);
-  res.json({ data: result });
+async function create(req, res, next) {
+  try {
+    const result = await service.create(req.body);
+    if (result) {
+      res.json(result);
+    } else {
+      next({
+        status: 400,
+        message: `Reservations cannot be created.`,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong trying to create a reservations`,
+    });
+  }
 }
+
 module.exports = {
   list: asyncErrorBoundary(list),
   read: asyncErrorBoundary(read),
