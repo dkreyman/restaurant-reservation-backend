@@ -54,6 +54,7 @@ function isValid(req, res, next) {
     "reservation_time",
     "people",
   ];
+
   if (req.body.data == undefined) {
     return next({
       status: 400,
@@ -74,7 +75,6 @@ function isValid(req, res, next) {
       message: "people is not a number",
     });
   }
-
   let formatDate =
     req.body.data.reservation_date.slice(5) +
     "-" +
@@ -82,7 +82,8 @@ function isValid(req, res, next) {
   let pickedDate = new Date(formatDate);
   let timeFormat = /^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$/;
   let dateFormat = /\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])*/;
-  let pickedTime = new Date("March 13,  " + req.body.data.reservation_time);
+  let formatTime = req.body.data.reservation_time.split(":");
+  let pickedTime = new Date().setHours(formatTime[0], formatTime[1]);
   // Tuesdays Are Closed
   if (pickedDate.getUTCDay() === 2) {
     return next({
@@ -96,27 +97,48 @@ function isValid(req, res, next) {
       message: "reservation_time is not type time",
     });
   }
-
   if (!req.body.data.reservation_date.match(dateFormat)) {
     return next({
       status: 400,
       message: "reservation_date is not type date",
     });
   }
-  // // Past Dates
+  // // Past Dates - 62991251 is timezone offset for Mountain Time
   if (pickedDate.getTime() <= new Date().getTime() - 62991251) {
     return next({
       status: 400,
       message: "Pick a day in the future",
     });
   }
-  // // Past Dates
-  if (pickedTime.getTime() <= new Date().getTime() - 62991251) {
+  // Past Time
+  if (
+    pickedDate.getTime() <= new Date().getTime() &&
+    pickedTime <= new Date().getTime()
+  ) {
     return next({
       status: 400,
       message: "That time is in the past",
     });
   }
+  //No reservation time is before 10:30 AM.
+  if (
+    // formatTime[0] is hours. formatTime[1] is minutes.
+    formatTime[0] < 10 ||
+    (formatTime[0] === 10 && formatTime[1] < 30)
+  ) {
+    return next({
+      status: 400,
+      message: "The reservation time is before 10:30 AM.",
+    });
+  }
+  //No Reservation After 9:30pm
+  if (formatTime[0] > 21 || (formatTime[0] === 21 && formatTime[1] > 30)) {
+    return next({
+      status: 400,
+      message: "The reservation time is after 9:30 PM.",
+    });
+  }
+  return next();
 }
 
 async function create(req, res, next) {
