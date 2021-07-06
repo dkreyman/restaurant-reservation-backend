@@ -11,14 +11,22 @@ function read(date) {
   return knex("reservations")
     .select("*")
     .where({ reservation_date: date })
-    .first();
+    .orderBy("reservation_time", "asc");
+}
+
+function findPhone(phone) {
+  return knex("reservations")
+    .select("*")
+    .where("mobile_number", "like", `%${phone}%`);
 }
 
 function list() {
   return knex("reservations").select("*");
 }
+
 module.exports = {
   create,
   read,
   list,
+  findPhone,
 };

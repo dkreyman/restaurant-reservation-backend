@@ -21,9 +21,16 @@ async function list(req, res, next) {
 async function read(req, res, next) {
   try {
     const date = req.query.date;
-    const reservation = await service.read(date);
+    const phone = req.query.mobile_number;
+    let reservation;
+    if (date) {
+      reservation = await service.read(date);
+    }
+    if (phone) {
+      reservation = await service.findPhone(phone);
+    }
     if (reservation) {
-      res.json({ data: reservation });
+      res.status(200).json({ data: reservation });
     } else {
       next({
         status: 404,
@@ -38,12 +45,85 @@ async function read(req, res, next) {
     });
   }
 }
+function isValid(req, res, next) {
+  const requiredFields = [
+    "first_name",
+    "last_name",
+    "mobile_number",
+    "reservation_date",
+    "reservation_time",
+    "people",
+  ];
+  if (req.body.data == undefined) {
+    return next({
+      status: 400,
+      message: `Data is missing`,
+    });
+  }
+  for (const field of requiredFields) {
+    if (!req.body.data[field]) {
+      return next({
+        status: 400,
+        message: `Reservation must include a ${field}`,
+      });
+    }
+  }
+  if (typeof req.body.data.people !== "number") {
+    return next({
+      status: 400,
+      message: "people is not a number",
+    });
+  }
+
+  let formatDate =
+    req.body.data.reservation_date.slice(5) +
+    "-" +
+    req.body.data.reservation_date.slice(0, 4);
+  let pickedDate = new Date(formatDate);
+  let timeFormat = /^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$/;
+  let dateFormat = /\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])*/;
+  let pickedTime = new Date("March 13,  " + req.body.data.reservation_time);
+  // Tuesdays Are Closed
+  if (pickedDate.getUTCDay() === 2) {
+    return next({
+      status: 400,
+      message: "Tuesdays are closed",
+    });
+  }
+  if (!req.body.data.reservation_time.match(timeFormat)) {
+    return next({
+      status: 400,
+      message: "reservation_time is not type time",
+    });
+  }
+
+  if (!req.body.data.reservation_date.match(dateFormat)) {
+    return next({
+      status: 400,
+      message: "reservation_date is not type date",
+    });
+  }
+  // // Past Dates
+  if (pickedDate.getTime() <= new Date().getTime() - 62991251) {
+    return next({
+      status: 400,
+      message: "Pick a day in the future",
+    });
+  }
+  // // Past Dates
+  if (pickedTime.getTime() <= new Date().getTime() - 62991251) {
+    return next({
+      status: 400,
+      message: "That time is in the past",
+    });
+  }
+}
 
 async function create(req, res, next) {
   try {
-    const result = await service.create(req.body);
+    const result = await service.create(req.body.data);
     if (result) {
-      res.json(result);
+      res.status(201).json({ data: result });
     } else {
       next({
         status: 400,
@@ -62,5 +142,5 @@ async function create(req, res, next) {
 module.exports = {
   list: asyncErrorBoundary(list),
   read: asyncErrorBoundary(read),
-  create: asyncErrorBoundary(create),
+  create: [isValid, asyncErrorBoundary(create)],
 };
