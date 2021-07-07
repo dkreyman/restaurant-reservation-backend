@@ -58,7 +58,7 @@ function isValid(req, res, next) {
   if (req.body.data == undefined) {
     return next({
       status: 400,
-      message: `Data is missing`,
+      message: `Data is missing. Body: ${JSON.stringify(req.body)}`,
     });
   }
   for (const field of requiredFields) {
