@@ -6,14 +6,12 @@
 
 const router = require("express").Router();
 const methodNotAllowed = require("../errors/methodNotAllowed");
-const controller = require("./reservations.controller");
-// router.route("/:reservation_Id").get(controller.readById);
+const controller = require("./tables.controller");
 router
   .route("/")
   .post(controller.create)
-  .get(controller.read)
+  .get(controller.list)
   .all(methodNotAllowed);
-
 // router.route("/").get(controller.read).all(methodNotAllowed);
 
 module.exports = router;

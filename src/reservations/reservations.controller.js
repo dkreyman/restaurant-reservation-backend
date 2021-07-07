@@ -45,6 +45,24 @@ async function read(req, res, next) {
     });
   }
 }
+async function readById(req, res, next) {
+  try {
+    const { reservation_Id } = req.params;
+    console.log(reservation_Id);
+    const reservation = await service.findById(reservation_Id);
+    if (reservation) {
+      res.status(200).json({ data: reservation });
+    }
+    next({ status: 404, message: `Reservations cannot be found for this id.` });
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong looking for reservations with ${reservation_Id}`,
+    });
+  }
+}
+
 function isValid(req, res, next) {
   const requiredFields = [
     "first_name",
@@ -58,7 +76,7 @@ function isValid(req, res, next) {
   if (req.body.data == undefined) {
     return next({
       status: 400,
-      message: `Data is missing. Body: ${JSON.stringify(req.body)}`,
+      message: `Data is missing.`,
     });
   }
   for (const field of requiredFields) {
@@ -164,5 +182,6 @@ async function create(req, res, next) {
 module.exports = {
   list: asyncErrorBoundary(list),
   read: asyncErrorBoundary(read),
+  readById: asyncErrorBoundary(readById),
   create: [isValid, asyncErrorBoundary(create)],
 };

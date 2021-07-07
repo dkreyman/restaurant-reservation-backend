@@ -14,6 +14,10 @@ function read(date) {
     .orderBy("reservation_time", "asc");
 }
 
+function findById(id) {
+  return knex("reservations").select("*").where({ reservation_id: id });
+}
+
 function findPhone(phone) {
   return knex("reservations")
     .select("*")
@@ -29,4 +33,5 @@ module.exports = {
   read,
   list,
   findPhone,
+  findById,
 };
