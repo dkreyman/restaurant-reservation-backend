@@ -7,9 +7,10 @@ async function list(req, res, next) {
   try {
     const reservation = await service.list();
     if (reservation) {
-      res.json({ data: reservation });
+      res.status(200).json({ data: reservation });
+    } else {
+      next({ status: 404, message: `Tables cannot be found.` });
     }
-    next({ status: 404, message: `Tables cannot be found.` });
   } catch (err) {
     console.log(err);
     next({
