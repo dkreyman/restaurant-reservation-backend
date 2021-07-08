@@ -1,5 +1,7 @@
 const service = require("./tables.service");
+const serviceRes = require("../reservations/reservations.service");
 const asyncErrorBoundary = require("../errors/asyncErrorBoundary");
+const { response } = require("express");
 /**
  * List handler for reservation resources
  */
@@ -78,7 +80,79 @@ async function create(req, res, next) {
   }
 }
 
+async function isValidUpdate(req, res, next) {
+  const { table_id } = req.params;
+  if (req.body.data == undefined) {
+    return next({
+      status: 400,
+      message: `Data is missing.`,
+    });
+  }
+  if (!req.body.data.reservation_id) {
+    return next({
+      status: 400,
+      message: `Seating request must include a reservation_id`,
+    });
+  }
+  const reservation = await serviceRes.findById(req.body.data.reservation_id);
+  if (!reservation) {
+    return next({
+      status: 404,
+      message: `There is no reservation with id: ${req.body.data.reservation_id}`,
+    });
+  }
+  const table = await service.findById(table_id);
+  if (!table) {
+    return next({
+      status: 400,
+      message: `There is no table with id: ${table_id}`,
+    });
+  }
+  if (table.occupied == "Occupied") {
+    return next({
+      status: 400,
+      message: `This table is already Occupied`,
+    });
+  }
+  if (reservation.status == "Seated") {
+    return next({
+      status: 400,
+      message: `This party is already seated`,
+    });
+  }
+  if (table.capacity < reservation.people) {
+    return next({
+      status: 400,
+      message: `This table can only hold ${table.capacity} people`,
+    });
+  }
+  return next();
+}
+async function assignRes(req, res, next) {
+  const { reservation_id } = req.body.data;
+  const { table_id } = req.params;
+  console.log(reservation_id, table_id);
+  try {
+    const result = await service.update(table_id, reservation_id);
+    if (result) {
+      res.status(200).json({ data: result });
+    } else {
+      next({
+        status: 404,
+        message: `reservation_id could not be assigned for this "table".`,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong updating "table" with id: ${reservation_id}`,
+    });
+  }
+}
+
 module.exports = {
   list: asyncErrorBoundary(list),
   create: [isValid, asyncErrorBoundary(create)],
+  assignRes: [asyncErrorBoundary(isValidUpdate), asyncErrorBoundary(assignRes)],
 };
