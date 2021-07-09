@@ -15,10 +15,11 @@ function findById(id) {
 }
 
 function update(id, resId) {
-  return knex("posts")
+  return knex("tables")
     .select("*")
     .where({ table_id: id })
-    .update("reservation_id", resId);
+    .update("reservation_id", resId)
+    .update("occupied", "occupied");
 }
 
 module.exports = {
