@@ -4,7 +4,7 @@ exports.up = function (knex) {
     table.string("first_name");
     table.string("last_name");
     table.string("mobile_number").notNullable();
-    table.string("status"); // booked, seated, or finished
+    table.string("status").defaultTo("booked"); // booked, seated, or finished
     table.date("reservation_date");
     table.time("reservation_time");
     table.integer("people").notNullable().defaultTo(1);

@@ -158,9 +158,28 @@ async function isValidUpdate(req, res, next) {
   if (table[0]["capacity"] < reservation[0]["people"]) {
     return next({
       status: 400,
-      message: `Reached capacity: this table can only hold ${table.capacity} people`,
+      message: `Reached capacity: this table can only hold ${table[0].capacity} people`,
     });
   }
+  return next();
+}
+async function isValidResDelete(req, res, next) {
+  const { table } = res.locals;
+  const { table_id } = req.params;
+  if (!table.length) {
+    return next({
+      status: 404,
+      message: `No table_id: ${table_id}`,
+    });
+  }
+
+  if (table[0]["occupied"] !== "occupied") {
+    return next({
+      status: 400,
+      message: `This table is not occupied`,
+    });
+  }
+
   return next();
 }
 async function assignRes(req, res, next) {
@@ -185,6 +204,27 @@ async function assignRes(req, res, next) {
   }
 }
 
+async function deleteRes(req, res, next) {
+  const { table_id } = req.params;
+  try {
+    const result = await service.deleteRes(table_id);
+    if (result) {
+      res.status(200).json({ data: result });
+    } else {
+      next({
+        status: 404,
+        message: `reservation_id could not be deleted for this "table".`,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong deleting "table" reservation with id: ${reservation_id}`,
+    });
+  }
+}
+
 module.exports = {
   list: asyncErrorBoundary(list),
   create: [isValid, asyncErrorBoundary(create)],
@@ -193,5 +233,10 @@ module.exports = {
     asyncErrorBoundary(tableExists),
     isValidUpdate,
     asyncErrorBoundary(assignRes),
+  ],
+  deleteRes: [
+    asyncErrorBoundary(tableExists),
+    isValidResDelete,
+    asyncErrorBoundary(deleteRes),
   ],
 };

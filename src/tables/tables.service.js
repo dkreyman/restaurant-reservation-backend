@@ -21,10 +21,17 @@ function update(id, resId) {
     .update("reservation_id", resId)
     .update("occupied", "occupied");
 }
-
+function deleteRes(id) {
+  return knex("tables")
+    .select("*")
+    .where({ table_id: id })
+    .update("reservation_id", null)
+    .update("occupied", "free");
+}
 module.exports = {
   create,
   list,
   findById,
   update,
+  deleteRes,
 };
