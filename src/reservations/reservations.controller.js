@@ -74,6 +74,7 @@ function isValid(req, res, next) {
     "reservation_date",
     "reservation_time",
     "people",
+    "status",
   ];
 
   if (req.body.data == undefined) {
@@ -181,10 +182,80 @@ async function create(req, res, next) {
     });
   }
 }
+function isValidStatus(req, res, next) {
+  const { status } = req.body.data;
+  if (status !== "booked") {
+    return next({
+      status: 400,
+      message: `status is ${status} not 'booked'`,
+    });
+  } else {
+    return next();
+  }
+}
+async function isValidStatusChange(req, res, next) {
+  const { status } = req.body.data;
+  const { reservation_id } = req.params;
+
+  const reservation = await service.findById(reservation_id);
+  if (!reservation.length) {
+    return next({
+      status: 404,
+      message: `Reservations cannot be found for ${reservation_id}.`,
+    });
+  }
+  console.log("status", status, status == "finished");
+  if (status == "finished") {
+    return next({
+      status: 400,
+      message: `status is finshed. A finished reservation cannot be updated'`,
+    });
+  }
+  // if (status !== "booked") {
+  //   return next({
+  //     status: 400,
+  //     message: `status is ${status} not 'booked'`,
+  //   });
+  // }
+  // else {
+  //   return next({
+  //     status: 400,
+  //     message: `Unknown status ${status} for reservation: ${reservation_id}`,
+  //   });
+  // }
+  return next();
+}
+async function statusChange(req, res, next) {
+  try {
+    const { reservation_id } = req.params;
+    const result = await service.updateStatus(
+      reservation_id,
+      req.body.data.status
+    );
+    if (result) {
+      res.status(200).json({ data: result });
+    } else {
+      next({
+        status: 404,
+        message: `Reservations: ${reservation_id} status cannot be updated.`,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong trying to update reservations status`,
+    });
+  }
+}
 
 module.exports = {
   list: asyncErrorBoundary(list),
   read: asyncErrorBoundary(read),
   readById: asyncErrorBoundary(readById),
-  create: [isValid, asyncErrorBoundary(create)],
+  create: [isValid, isValidStatus, asyncErrorBoundary(create)],
+  statusChange: [
+    asyncErrorBoundary(isValidStatusChange),
+    asyncErrorBoundary(statusChange),
+  ],
 };

@@ -205,6 +205,7 @@ async function assignRes(req, res, next) {
 }
 
 async function deleteRes(req, res, next) {
+  const { reservation_id } = req.body.data;
   const { table_id } = req.params;
   try {
     const result = await service.deleteRes(table_id);
@@ -223,6 +224,24 @@ async function deleteRes(req, res, next) {
       message: `Something went wrong deleting "table" reservation with id: ${reservation_id}`,
     });
   }
+  try {
+    const result = await serviceRes.updateStatus(reservation_id, "finished");
+    if (result) {
+      res.status(200).json({ data: result });
+    } else {
+      next({
+        status: 404,
+        message: `reservation status could not be updated to finished.`,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong updating reservation status could not be updated to finished`,
+    });
+  }
+  return next();
 }
 
 module.exports = {
