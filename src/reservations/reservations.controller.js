@@ -47,13 +47,16 @@ async function read(req, res, next) {
 }
 async function readById(req, res, next) {
   try {
-    const { reservation_Id } = req.params;
-    console.log(reservation_Id);
-    const reservation = await service.findById(reservation_Id);
-    if (reservation) {
-      res.status(200).json({ data: reservation });
+    const { reservation_id } = req.params;
+    const reservation = await service.findById(reservation_id);
+    if (!reservation.length) {
+      return next({
+        status: 404,
+        message: `Reservations cannot be found for ${reservation_id}.`,
+      });
+    } else {
+      res.status(200).json({ data: reservation[0] });
     }
-    next({ status: 404, message: `Reservations cannot be found for this id.` });
   } catch (err) {
     console.log(err);
     next({

@@ -7,7 +7,7 @@
 const router = require("express").Router();
 const methodNotAllowed = require("../errors/methodNotAllowed");
 const controller = require("./reservations.controller");
-// router.route("/:reservation_Id").get(controller.readById);
+router.route("/:reservation_id").get(controller.readById);
 router
   .route("/")
   .post(controller.create)

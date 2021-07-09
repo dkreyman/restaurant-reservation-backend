@@ -87,7 +87,6 @@ async function reservationExists(req, res, next) {
       message: `Data is missing.`,
     });
   }
-  console.log("id", req.body.data.reservation_id);
   if (!req.body.data.reservation_id) {
     return next({
       status: 400,
