@@ -128,15 +128,14 @@ describe("US-06 - Reservation status", () => {
       "returns 200 for status '%s'",
       async (status) => {
         expect(reservationOne).not.toBeUndefined();
-        console.log("131");
+
         const response = await request(app)
           .put(`/reservations/${reservationOne.reservation_id}/status`)
           .set("Accept", "application/json")
           .send({ data: { status } });
-        console.log("136");
+
         expect(response.body.data).toHaveProperty("status", status);
         expect(response.status).toBe(200);
-        console.log("139");
       }
     );
   });
