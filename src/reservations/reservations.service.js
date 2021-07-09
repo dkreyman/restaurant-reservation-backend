@@ -33,7 +33,8 @@ function updateStatus(id, status) {
   return knex("reservations")
     .select("*")
     .where({ reservation_id: id })
-    .update("status", status);
+    .update("status", status)
+    .returning("status");
 }
 
 module.exports = {

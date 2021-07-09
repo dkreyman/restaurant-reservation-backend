@@ -204,45 +204,41 @@ async function isValidStatusChange(req, res, next) {
       message: `Reservations cannot be found for ${reservation_id}.`,
     });
   }
-  console.log("status", status, status == "finished");
-  if (status == "finished") {
+
+  if (reservation[0].status == "finished") {
     return next({
       status: 400,
-      message: `status is finshed. A finished reservation cannot be updated'`,
+      message: `status is finshed. A finished reservation cannot be updated`,
     });
   }
-  // if (status !== "booked") {
-  //   return next({
-  //     status: 400,
-  //     message: `status is ${status} not 'booked'`,
-  //   });
-  // }
-  // else {
-  //   return next({
-  //     status: 400,
-  //     message: `Unknown status ${status} for reservation: ${reservation_id}`,
-  //   });
-  // }
-  return next();
+
+  if (status !== "booked" && status !== "seated" && status !== "finished") {
+    return next({
+      status: 400,
+      message: `status ${status} is unknown`,
+    });
+  } else {
+    return next();
+  }
 }
 async function statusChange(req, res, next) {
   try {
     const { reservation_id } = req.params;
+
     const result = await service.updateStatus(
       reservation_id,
       req.body.data.status
     );
     if (result) {
-      res.status(200).json({ data: result });
+      res.status(200).json({ data: { status: result[0] } });
     } else {
-      next({
+      return next({
         status: 404,
         message: `Reservations: ${reservation_id} status cannot be updated.`,
       });
     }
   } catch (err) {
-    console.log(err);
-    next({
+    return next({
       status: 500,
       message: `Something went wrong trying to update reservations status`,
     });

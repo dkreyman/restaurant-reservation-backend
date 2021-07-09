@@ -101,6 +101,12 @@ async function reservationExists(req, res, next) {
         status: 404,
         message: `Reservation with ${req.body.data.reservation_id} cannot be found.`,
       });
+    }
+    if (reservation[0].status == "seated") {
+      next({
+        status: 400,
+        message: `Reservation with ${req.body.data.reservation_id} is already seated.`,
+      });
     } else {
       res.locals.reservation = reservation;
       return next();
@@ -187,9 +193,7 @@ async function assignRes(req, res, next) {
   const { table_id } = req.params;
   try {
     const result = await service.update(table_id, reservation_id);
-    if (result) {
-      res.status(200).json({ data: result });
-    } else {
+    if (!result) {
       next({
         status: 404,
         message: `reservation_id could not be assigned for this "table".`,
@@ -202,6 +206,24 @@ async function assignRes(req, res, next) {
       message: `Something went wrong updating "table" with id: ${reservation_id}`,
     });
   }
+  try {
+    const result = await serviceRes.updateStatus(reservation_id, "seated");
+    if (result) {
+      res.status(200).json({ data: result });
+    } else {
+      next({
+        status: 404,
+        message: `reservation status could not be updated to seated.`,
+      });
+    }
+  } catch (err) {
+    console.log(err);
+    next({
+      status: 500,
+      message: `Something went wrong updating reservation status could not be updated to seated`,
+    });
+  }
+  return next();
 }
 
 async function deleteRes(req, res, next) {
@@ -209,9 +231,7 @@ async function deleteRes(req, res, next) {
   const { table_id } = req.params;
   try {
     const result = await service.deleteRes(table_id);
-    if (result) {
-      res.status(200).json({ data: result });
-    } else {
+    if (!result) {
       next({
         status: 404,
         message: `reservation_id could not be deleted for this "table".`,
@@ -224,6 +244,7 @@ async function deleteRes(req, res, next) {
       message: `Something went wrong deleting "table" reservation with id: ${reservation_id}`,
     });
   }
+  //updated reservation status to finished
   try {
     const result = await serviceRes.updateStatus(reservation_id, "finished");
     if (result) {
