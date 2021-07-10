@@ -6,7 +6,7 @@
 
 ## Installation
 
-1. Fork and clone [restaurant-reservation-backend](https://github.com/dkreyman/restaurant-reservation-backend) & [restaurant-reservation-frontend](https://github.com/dkreyman/restaurant-reservation-frontend) into a common folder and rename to back-end & front-end
+1. Fork and clone [restaurant-reservation-backend](https://github.com/dkreyman/restaurant-reservation-backend) & [restaurant-reservation-frontend](https://github.com/dkreyman/restaurant-reservation-frontend) into a common folder and rename to backend & client
 1. Run `cp ./back-end/.env.sample ./back-end/.env`.
 1. Update the `./back-end/.env` file with the connection URL's to your ElephantSQL database instance.
 1. Run `cp ./front-end/.env.sample ./front-end/.env`.
