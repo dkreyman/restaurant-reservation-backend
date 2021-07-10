@@ -1,5 +1,9 @@
 # Capstone: Restaurant Reservation System
 
+## Demo
+
+[restaurant-reservation](https://restaurant-reservation-front.herokuapp.com/dashboard)
+
 ## Installation
 
 1. Fork and clone [restaurant-reservation-backend](https://github.com/dkreyman/restaurant-reservation-backend) & [restaurant-reservation-frontend](https://github.com/dkreyman/restaurant-reservation-frontend) into a common folder and rename to back-end & front-end
