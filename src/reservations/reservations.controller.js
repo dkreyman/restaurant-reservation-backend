@@ -34,7 +34,7 @@ async function read(req, res, next) {
     } else {
       next({
         status: 404,
-        message: `Reservations cannot be found for this date: ${date}.`,
+        message: `No reservations found for this date or phone number.`,
       });
     }
   } catch (err) {
@@ -74,7 +74,6 @@ function isValid(req, res, next) {
     "reservation_date",
     "reservation_time",
     "people",
-    "status",
   ];
 
   if (req.body.data == undefined) {
@@ -184,7 +183,7 @@ async function create(req, res, next) {
 }
 function isValidStatus(req, res, next) {
   const { status } = req.body.data;
-  if (status !== "booked") {
+  if (status === "seated" || status === "finished") {
     return next({
       status: 400,
       message: `status is ${status} not 'booked'`,
@@ -212,7 +211,12 @@ async function isValidStatusChange(req, res, next) {
     });
   }
 
-  if (status !== "booked" && status !== "seated" && status !== "finished") {
+  if (
+    status !== "booked" &&
+    status !== "seated" &&
+    status !== "finished" &&
+    status !== "cancelled"
+  ) {
     return next({
       status: 400,
       message: `status ${status} is unknown`,
@@ -224,7 +228,6 @@ async function isValidStatusChange(req, res, next) {
 async function statusChange(req, res, next) {
   try {
     const { reservation_id } = req.params;
-
     const result = await service.updateStatus(
       reservation_id,
       req.body.data.status
@@ -244,6 +247,50 @@ async function statusChange(req, res, next) {
     });
   }
 }
+async function updateRes(req, res, next) {
+  try {
+    const { reservation_id } = req.params;
+
+    const result = await service.updateReservation(
+      reservation_id,
+      req.body.data
+    );
+
+    if (result) {
+      res.status(200).json({ data: result[0] });
+    } else {
+      return next({
+        status: 404,
+        message: `Reservations: ${reservation_id} cannot be updated.`,
+      });
+    }
+  } catch (err) {
+    return next({
+      status: 500,
+      message: `Something went wrong trying to update reservation`,
+    });
+  }
+}
+
+async function updateResValidation(req, res, next) {
+  try {
+    const { reservation_id } = req.params;
+
+    const result = await service.findById(reservation_id);
+    if (!result.length) {
+      return next({
+        status: 404,
+        message: `Reservations: ${reservation_id} cannot be found`,
+      });
+    }
+  } catch (err) {
+    return next({
+      status: 500,
+      message: `Something went wrong looking for reservation`,
+    });
+  }
+  return next();
+}
 
 module.exports = {
   list: asyncErrorBoundary(list),
@@ -253,5 +300,10 @@ module.exports = {
   statusChange: [
     asyncErrorBoundary(isValidStatusChange),
     asyncErrorBoundary(statusChange),
+  ],
+  updateRes: [
+    asyncErrorBoundary(updateResValidation),
+    isValid,
+    asyncErrorBoundary(updateRes),
   ],
 };

@@ -81,7 +81,7 @@ async function create(req, res, next) {
 }
 
 async function reservationExists(req, res, next) {
-  if (req.body.data == undefined) {
+  if (req.body.data === undefined) {
     return next({
       status: 400,
       message: `Data is missing.`,
@@ -101,8 +101,7 @@ async function reservationExists(req, res, next) {
         status: 404,
         message: `Reservation with ${req.body.data.reservation_id} cannot be found.`,
       });
-    }
-    if (reservation[0].status == "seated") {
+    } else if (reservation[0].status == "seated") {
       next({
         status: 400,
         message: `Reservation with ${req.body.data.reservation_id} is already seated.`,
@@ -155,12 +154,6 @@ async function isValidUpdate(req, res, next) {
       message: `This table is already occupied`,
     });
   }
-  // if (reservation[0]["status"] == "seated") {
-  //   return next({
-  //     status: 400,
-  //     message: `This party is already seated`,
-  //   });
-  // }
   if (table[0]["capacity"] < reservation[0]["people"]) {
     return next({
       status: 400,
@@ -246,24 +239,6 @@ async function deleteRes(req, res, next) {
       message: `Something went wrong deleting "table" reservation with id: ${reservation_id}`,
     });
   }
-  //updated reservation status to finished
-  // try {
-  //   const result = await serviceRes.updateStatus(reservation_id, "finished");
-  //   if (result) {
-  //     res.status(200).json({ data: result });
-  //   } else {
-  //     next({
-  //       status: 404,
-  //       message: `reservation status could not be updated to finished.`,
-  //     });
-  //   }
-  // } catch (err) {
-  //   console.log(err);
-  //   next({
-  //     status: 500,
-  //     message: `Something went wrong updating reservation status could not be updated to finished`,
-  //   });
-  // }
   return next();
 }
 

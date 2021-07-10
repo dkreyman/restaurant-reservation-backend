@@ -36,6 +36,13 @@ function updateStatus(id, status) {
     .update("status", status)
     .returning("status");
 }
+function updateReservation(id, res) {
+  return knex("reservations")
+    .select("*")
+    .where({ reservation_id: id })
+    .update(res, "*")
+    .returning("*");
+}
 
 module.exports = {
   create,
@@ -44,4 +51,5 @@ module.exports = {
   findPhone,
   findById,
   updateStatus,
+  updateReservation,
 };

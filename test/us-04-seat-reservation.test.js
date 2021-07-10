@@ -172,7 +172,7 @@ describe("US-04 - Seat reservation", () => {
           .set("Accept", "application/json");
 
         expect(response.body.error).toBeUndefined();
-        console.log(response.body);
+
         expect(response.body.data.reservation_id).toBe(1);
         expect(response.status).toBe(200);
       });
