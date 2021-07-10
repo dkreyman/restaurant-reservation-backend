@@ -144,6 +144,7 @@ async function tableExists(req, res, next) {
       message: `Something went wrong looking for table with id: ${table_id}`,
     });
   }
+  return next();
 }
 async function isValidUpdate(req, res, next) {
   const { table, reservation } = res.locals;
@@ -162,7 +163,7 @@ async function isValidUpdate(req, res, next) {
   }
   return next();
 }
-async function isValidResDelete(req, res, next) {
+function isValidResDelete(req, res, next) {
   const { table } = res.locals;
   const { table_id } = req.params;
   if (!table.length) {
@@ -216,7 +217,6 @@ async function assignRes(req, res, next) {
       message: `Something went wrong updating reservation status could not be updated to seated`,
     });
   }
-  return next();
 }
 
 async function deleteRes(req, res, next) {
@@ -243,9 +243,12 @@ async function deleteRes(req, res, next) {
 }
 
 async function finishResStatus(req, res, next) {
-  const { reservation_id } = req.body.data;
   try {
-    const result = await serviceRes.updateStatus(reservation_id, "finished");
+    const { table } = res.locals;
+    const result = await serviceRes.updateStatus(
+      table[0].reservation_id,
+      "finished"
+    );
     if (!result) {
       next({
         status: 404,
@@ -259,7 +262,6 @@ async function finishResStatus(req, res, next) {
       message: `Something went wrong updating reservation status could not be updated to finished`,
     });
   }
-  return next();
 }
 
 module.exports = {

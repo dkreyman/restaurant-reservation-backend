@@ -104,6 +104,8 @@ function isValid(req, res, next) {
   let timeFormat = /^(?:(?:([01]?\d|2[0-3]):)?([0-5]?\d):)?([0-5]?\d)$/;
   let dateFormat = /\d{4}\-(0?[1-9]|1[012])\-(0?[1-9]|[12][0-9]|3[01])*/;
   let formatTime = req.body.data.reservation_time.split(":");
+  formatTime[0] = parseInt(formatTime[0]);
+  formatTime[1] = parseInt(formatTime[1]);
   let pickedTime = new Date().setHours(formatTime[0], formatTime[1]);
   // Tuesdays Are Closed
   if (pickedDate.getUTCDay() === 2) {
@@ -142,11 +144,8 @@ function isValid(req, res, next) {
     });
   }
   //No reservation time is before 10:30 AM.
-  if (
-    // formatTime[0] is hours. formatTime[1] is minutes.
-    formatTime[0] < 10 ||
-    (formatTime[0] === 10 && formatTime[1] < 30)
-  ) {
+  // formatTime[0] is hours. formatTime[1] is minutes.
+  if (formatTime[0] < 10 || (formatTime[0] === 10 && formatTime[1] < 30)) {
     return next({
       status: 400,
       message: "The reservation time is before 10:30 AM.",
