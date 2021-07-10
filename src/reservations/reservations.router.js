@@ -18,6 +18,4 @@ router
   .get(controller.read)
   .all(methodNotAllowed);
 
-// router.route("/").get(controller.read).all(methodNotAllowed);
-
 module.exports = router;
